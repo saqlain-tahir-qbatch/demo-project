@@ -3,12 +3,22 @@ import axios from "../../config/axios-config";
 
 const initialState = {
   Productlist: [],
+  error: " ",
 };
 
-export const fetchProduct = createAsyncThunk("getProduct", async () => {
-  const result = await axios.get("products");
-  return result.data;
-});
+export const fetchProduct = createAsyncThunk(
+  "getProduct",
+  async (data, thunkAPI) => {
+    try {
+      const result = await axios.get("products");
+      return result.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue({
+        error: error.message,
+      });
+    }
+  }
+);
 
 export const showSlice = createSlice({
   name: "show",
@@ -22,10 +32,10 @@ export const showSlice = createSlice({
       state = "pending";
     },
     [fetchProduct.rejected]: (state, actions) => {
-      state = "Try Again";
+      state.error = actions.payload.error;
     },
   },
 });
-export const { show } = showSlice.actions;
+export const {} = showSlice.actions;
 
 export default showSlice.reducer;

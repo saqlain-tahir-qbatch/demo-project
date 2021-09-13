@@ -1,43 +1,50 @@
 import express from "express";
 const Cartrouter = new express.Router();
 import Cart from "../models/cart";
+import auth from "../middleware/auth";
 
-Cartrouter.get("/", async (req, res) => {
+Cartrouter.post("/cart", auth, async (req, res) => {
+  let email;
+  const { id, count, name, price } = req.body;
+  email = req.user;
   try {
-    res.send("Hello from cart");
+    const isCartExist = await Cart.findOne({ id, userId: email });
+    if (isCartExist) {
+      const update = await Cart.findOneAndUpdate(
+        { id, userId: email },
+        { count: isCartExist.count + count }
+      );
+      res.send(update);
+    } else {
+      const data = {
+        id,
+        name,
+        count,
+        price,
+        userId: email,
+      };
+      const cart = new Cart(data);
+      const createCart = await cart.save();
+      res.status(201).send(createCart);
+    }
   } catch (error) {
     res.status(500).send(error);
   }
 });
-
-Cartrouter.post("/cart", async (req, res) => {
+Cartrouter.get("/cart", auth, async (req, res) => {
   try {
-    const { id, count } = req.body;
-    const isexist = await Cart.find({ id });
-    const update = await Cart.findOneAndUpdate(
-      { id },
-      { count: isexist[0].count + count }
-    );
-    res.send(update);
-  } catch (error) {
-    const cart = new Cart(req.body);
-    const createCart = await cart.save();
-    res.status(201).send(createCart);
-  }
-});
-Cartrouter.get("/cart", async (req, res) => {
-  try {
-    const cartData = await Cart.find({});
+    const email = req.user;
+    const cartData = await Cart.find({ userId: email });
     res.status(200).send(cartData);
   } catch (error) {
     res.status(500).send(error);
   }
 });
-Cartrouter.delete("/cart/:id", async (req, res) => {
+Cartrouter.delete("/cart/:id", auth, async (req, res) => {
   try {
     const id = req.params.id;
-
-    const cartData = await Cart.findOneAndDelete(id);
+    const email = req.user;
+    const cartData = await Cart.findOneAndDelete({ id, userId: email });
     if (!cartData) {
       return res.status(404).send();
     } else {
@@ -47,12 +54,17 @@ Cartrouter.delete("/cart/:id", async (req, res) => {
     res.status(500).send(error);
   }
 });
-Cartrouter.patch("/cart/:id", async (req, res) => {
+Cartrouter.patch("/cart/:id", auth, async (req, res) => {
   try {
     const id = req.params.id;
-    const cartData = await Cart.findOneAndUpdate({ id }, req.body, {
-      new: true,
-    });
+    const email = req.user;
+    const cartData = await Cart.findOneAndUpdate(
+      { id, userId: email },
+      req.body,
+      {
+        new: true,
+      }
+    );
     res.send(cartData);
   } catch (error) {
     res.status(404).send(error);

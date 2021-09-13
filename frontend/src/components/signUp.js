@@ -12,6 +12,8 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
+import { useDispatch, useSelector } from "react-redux";
+import { addUser } from "../reducer/addUser";
 
 function Copyright() {
   return (
@@ -44,10 +46,25 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  error: {
+    color: "red",
+  },
 }));
 
 export default function SignUp() {
   const classes = useStyles();
+  const dispatch = useDispatch();
+  const error = useSelector((state) => state.User.error);
+  const handleSubmit = (first_name, last_name, email, password) => {
+    dispatch(
+      addUser({
+        first_name,
+        last_name,
+        email,
+        password,
+      })
+    );
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -107,25 +124,29 @@ export default function SignUp() {
                 autoComplete="current-password"
               />
             </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={<Checkbox value="allowExtraEmails" color="primary" />}
-                label="I want to receive inspiration, marketing promotions and updates via email."
-              />
+            <Grid item xs={12} className={classes.error}>
+              <h3>{error}</h3>
             </Grid>
           </Grid>
           <Button
-            type="submit"
             fullWidth
             variant="contained"
             color="primary"
             className={classes.submit}
+            onClick={() => {
+              handleSubmit(
+                document.getElementById("firstName").value,
+                document.getElementById("lastName").value,
+                document.getElementById("email").value,
+                document.getElementById("password").value
+              );
+            }}
           >
             Sign Up
           </Button>
           <Grid container justifyContent="flex-end">
             <Grid item>
-              <Link href="http://localhost:3001/signIn" variant="body2">
+              <Link href="http://localhost:3000/auth/signIn" variant="body2">
                 Already have an account? Sign in
               </Link>
             </Grid>

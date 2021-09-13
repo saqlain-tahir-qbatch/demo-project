@@ -7,24 +7,30 @@ import {
   add_remove_quantity,
   deleteProductFromCart,
 } from "../reducer/addToCart";
+import Cookies from "universal-cookie";
+
+const cookies = new Cookies();
+const token = cookies.get("token");
 
 const Cart = () => {
   const dispatch = useDispatch();
   const list = useSelector((state) => state.Cart.cartItem);
   const minusQuantity = (id, count) => {
-    dispatch(add_remove_quantity({ count: count - 1, id: id }));
-    dispatch(getProductFromCart());
+    dispatch(add_remove_quantity({ count: count - 1, id: id, userId: token }));
+    dispatch(getProductFromCart(token));
   };
   const addQuantity = (id, count) => {
-    dispatch(add_remove_quantity({ count: count + 1, id: id }));
-    dispatch(getProductFromCart());
+    dispatch(add_remove_quantity({ count: count + 1, id: id, userId: token }));
+    dispatch(getProductFromCart(token));
   };
-  const removeFromCart = (id) => {
-    dispatch(deleteProductFromCart({ id: id }));
+  const removeFromCart = async (id) => {
+    await dispatch(deleteProductFromCart({ id: id, userId: token }));
+    dispatch(getProductFromCart(token));
   };
   useEffect(() => {
-    dispatch(getProductFromCart());
-  }, [dispatch]);
+    dispatch(getProductFromCart(token));
+  }, [token]);
+
   return (
     <div style={{ display: "flex" }}>
       <Grid container>
@@ -32,7 +38,7 @@ const Cart = () => {
           list.map((element, i) => {
             const { name, count, price, id } = element;
             return (
-              <Grid item xs={4} key={id}>
+              <Grid item xs={4} key={element._id}>
                 <h3>{name}</h3>
                 <Button
                   disabled={count <= 1}
@@ -42,7 +48,12 @@ const Cart = () => {
                 >
                   -
                 </Button>
-                <input value={count} />
+                <input
+                  value={count}
+                  onChange={() => {
+                    count;
+                  }}
+                />
                 <Button
                   onClick={() => {
                     addQuantity(id, count);

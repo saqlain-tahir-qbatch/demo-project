@@ -4,15 +4,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProduct } from "../reducer/showProduct";
 import Card from "./card";
 import { getProductFromCart } from "../reducer/addToCart";
+import Cookies from "universal-cookie";
 
 const Products = () => {
   const list = useSelector((state) => state.Products.Productlist);
+  const error = useSelector((state) => state.Products.error);
   const dispatch = useDispatch();
+  const cookies = new Cookies();
+  const token = cookies.get("token");
+
   useEffect(() => {
     dispatch(fetchProduct());
-    dispatch(getProductFromCart());
+    if (token) {
+      dispatch(getProductFromCart(token));
+    }
   }, [dispatch]);
-
   return (
     <Grid container spacing={4}>
       {list &&
@@ -30,6 +36,9 @@ const Products = () => {
             </Grid>
           );
         })}
+      <div>
+        <h3 style={{ paddingLeft: "600px", paddingTop: "20px" }}>{error}</h3>
+      </div>
     </Grid>
   );
 };

@@ -1,11 +1,15 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require("path"); 
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 module.exports = {
   mode: "development",
-  entry: "/src/index.js",
+  entry: path.resolve(__dirname,"/src/index.js"),
   output: {
-    filename: "bundle.[hash].js",
+    filename: "[bundle].[hash].js",
+    path: path.resolve(__dirname,"dist"),
+    publicPath: "/",
+    pathinfo: false,
   },
   devtool: "inline-source-map",
   module: {

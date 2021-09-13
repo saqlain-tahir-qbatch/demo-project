@@ -10,7 +10,12 @@ export const postProductToCart = createAsyncThunk(
   "postToCart",
   async (body) => {
     try {
-      const response = await axios.post("cart", body);
+      const response = await axios.post("cart", body.data, {
+        headers: {
+          authorization: `Bearer ${body.userId}`,
+        },
+      });
+
       return response.data;
     } catch (error) {
       console.log(error);
@@ -18,20 +23,31 @@ export const postProductToCart = createAsyncThunk(
   }
 );
 
-export const getProductFromCart = createAsyncThunk("getfromCart", async () => {
-  try {
-    const response = await axios.get("cart");
-    return response.data;
-  } catch (error) {
-    console.log(error);
+export const getProductFromCart = createAsyncThunk(
+  "getfromCart",
+  async (userId) => {
+    try {
+      const response = await axios.get("cart", {
+        headers: {
+          authorization: `Bearer ${userId}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
   }
-});
+);
 
 export const deleteProductFromCart = createAsyncThunk(
   "deletefromCart",
-  async (id) => {
+  async (body) => {
     try {
-      const response = await axios.delete(`cart/${id}`);
+      const response = await axios.delete(`cart/${body.id}`, {
+        headers: {
+          authorization: `Bearer ${body.userId}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.log(error);
@@ -43,9 +59,17 @@ export const add_remove_quantity = createAsyncThunk(
   "add_remove_quantity",
   async (body) => {
     try {
-      const response = await axios.patch(`cart/${body.id}`, {
-        count: body.count,
-      });
+      const response = await axios.patch(
+        `cart/${body.id}`,
+        {
+          count: body.count,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${body.userId}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       console.log(error);
@@ -84,8 +108,11 @@ export const cartSlice = createSlice({
     },
     [deleteProductFromCart.fulfilled]: (state, actions) => {
       const newList = state.cartItem.filter(
-        (elem) => elem.id !== actions.payload.id
+        (elem) =>
+          elem.id !== actions.payload.id &&
+          elem.userId !== actions.payload.userId
       );
+      console.log(newList);
       state.cartItem = newList;
       state.count = state.count - actions.payload.count;
       console.log("data deleted successfully");

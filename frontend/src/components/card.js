@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
@@ -10,7 +10,11 @@ import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import { postProductToCart } from "../reducer/addToCart";
 import { getProductFromCart } from "../reducer/addToCart";
+import Cookies from "universal-cookie";
+import { useHistory } from "react-router-dom";
 
+const cookies = new Cookies();
+const token = cookies.get("token");
 const useStyles = makeStyles({
   root: {
     maxWidth: 345,
@@ -22,17 +26,21 @@ const useStyles = makeStyles({
 
 export default function MediaCard(props) {
   const { id, heading, img, description, price } = props;
+  const history = useHistory();
   const dispatch = useDispatch();
   const add = async () => {
-    await dispatch(
-      postProductToCart({
+    if (token) {
+      const data = {
         id: id,
         count: 1,
         name: heading,
         price: price,
-      })
-    );
-    dispatch(getProductFromCart());
+      };
+      await dispatch(postProductToCart({ data, userId: token }));
+      dispatch(getProductFromCart(token));
+    } else {
+      history.push("auth/signIn");
+    }
   };
   const classes = useStyles();
 
