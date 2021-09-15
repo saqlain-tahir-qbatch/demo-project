@@ -4,6 +4,7 @@ import axios from "../../config/axios-config";
 const initialState = {
   Productlist: [],
   error: " ",
+  description: " "
 };
 
 export const fetchProduct = createAsyncThunk(
@@ -19,6 +20,20 @@ export const fetchProduct = createAsyncThunk(
     }
   }
 );
+export const fetchDescription = createAsyncThunk(
+  "getdecription",
+  async ({id}, thunkAPI) => {
+    try {
+      const result = await axios.get(`products/${id}`);
+      return result.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue({
+        error: error.message,
+      });
+    }
+  }
+);
+
 
 export const showSlice = createSlice({
   name: "show",
@@ -32,6 +47,15 @@ export const showSlice = createSlice({
       state = "pending";
     },
     [fetchProduct.rejected]: (state, actions) => {
+      state.error = actions.payload.error;
+    },
+    [fetchDescription.fulfilled]: (state, actions) => {
+      state.description = actions.payload[0].description;
+    },
+    [fetchDescription.pending]: (state, actions) => {
+      state = "pending";
+    },
+    [fetchDescription.rejected]: (state, actions) => {
       state.error = actions.payload.error;
     },
   },

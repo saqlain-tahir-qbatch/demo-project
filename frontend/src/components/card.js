@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useDispatch } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
@@ -26,6 +26,7 @@ const useStyles = makeStyles({
 
 export default function MediaCard(props) {
   const { id, heading, img, description, price } = props;
+
   const history = useHistory();
   const dispatch = useDispatch();
   const add = async () => {
