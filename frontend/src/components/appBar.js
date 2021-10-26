@@ -7,7 +7,6 @@ import Typography from "@material-ui/core/Typography";
 import ShoppingCartRoundedIcon from "@material-ui/icons/ShoppingCartRounded";
 import { Badge } from "@material-ui/core";
 import { NavLink } from "react-router-dom";
-import { useCookies } from "react-cookie";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,8 +26,6 @@ const NavBar = () => {
 
   const count = useSelector((state) => state.Cart.count);
   const { first_name } = useSelector((state) => state.User.userList);
-  const [cookie, setCookie, removeCookie] = useCookies(["token"]);
-
   return (
     <div className={classes.root}>
       <AppBar position="static">
@@ -45,7 +42,7 @@ const NavBar = () => {
             </Typography>
           </NavLink>
 
-          <NavLink to="auth/signUp">
+          <NavLink to="/signUp">
             <Typography variant="h6" className={classes.product}>
               SignUp
             </Typography>

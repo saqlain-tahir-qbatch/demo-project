@@ -4,7 +4,7 @@ import axios from "../../config/axios-config";
 const initialState = {
   Productlist: [],
   error: " ",
-  description: " "
+  description: " ",
 };
 
 export const fetchProduct = createAsyncThunk(
@@ -22,7 +22,7 @@ export const fetchProduct = createAsyncThunk(
 );
 export const fetchDescription = createAsyncThunk(
   "getdecription",
-  async ({id}, thunkAPI) => {
+  async ({ id }, thunkAPI) => {
     try {
       const result = await axios.get(`products/${id}`);
       return result.data;
@@ -33,7 +33,6 @@ export const fetchDescription = createAsyncThunk(
     }
   }
 );
-
 
 export const showSlice = createSlice({
   name: "show",

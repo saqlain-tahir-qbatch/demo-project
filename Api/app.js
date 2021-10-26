@@ -4,7 +4,6 @@ import "./db/conn";
 import Product from "./routers/products";
 import Cart from "./routers/cart";
 import User from "./routers/user";
-import auth from "./middleware/auth"
 
 
 

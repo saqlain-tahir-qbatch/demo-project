@@ -40,7 +40,7 @@ export default function MediaCard(props) {
       await dispatch(postProductToCart({ data, userId: token }));
       dispatch(getProductFromCart(token));
     } else {
-      history.push("auth/signIn");
+      history.push("/signIn");
     }
   };
   const classes = useStyles();
