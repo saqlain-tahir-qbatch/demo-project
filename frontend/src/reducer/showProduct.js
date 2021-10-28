@@ -5,13 +5,30 @@ const initialState = {
   Productlist: [],
   error: " ",
   description: " ",
+  filters: []
 };
 
 export const fetchProduct = createAsyncThunk(
   "getProduct",
-  async (data, thunkAPI) => {
+  async (data, {getState}, thunkAPI) => {
     try {
       const result = await axios.get("products");
+      return result.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue({
+        error: error.message,
+      });
+    }
+  }
+);
+export const getProductWithFilter = createAsyncThunk(
+  "getProductWithFilter",
+  async (data, {getState}, thunkAPI) => {
+    const {filters} = getState().Products
+    try {
+      const result = await axios.get("inventory", {
+        params: {filters: JSON.stringify(filters)}
+      });
       return result.data;
     } catch (error) {
       return thunkAPI.rejectWithValue({
@@ -37,7 +54,18 @@ export const fetchDescription = createAsyncThunk(
 export const showSlice = createSlice({
   name: "show",
   initialState,
-  reducers: {},
+  reducers: {
+    setFilter(state, { payload: { field, value } }) {
+      const filters = [...state.filters];
+      const checkFilter = filters.findIndex(item => item.field === field);
+      if(checkFilter !== -1) {
+        filters[checkFilter] = { field, value };
+      } else {
+        filters.push({ field, value });
+      }
+      state["filters"] = filters;
+    }
+  },
   extraReducers: {
     [fetchProduct.fulfilled]: (state, actions) => {
       state.Productlist = actions.payload;
@@ -57,8 +85,17 @@ export const showSlice = createSlice({
     [fetchDescription.rejected]: (state, actions) => {
       state.error = actions.payload.error;
     },
+    [getProductWithFilter.fulfilled]: (state, actions) => {
+      state.Productlist = actions.payload;
+    },
+    [getProductWithFilter.pending]: (state, actions) => {
+      state = "pending";
+    },
+    [getProductWithFilter.rejected]: (state, actions) => {
+      state.error = actions.payload.error;
+    },
   },
 });
-export const {} = showSlice.actions;
+export const {setFilter} = showSlice.actions;
 
 export default showSlice.reducer;

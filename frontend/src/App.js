@@ -4,6 +4,7 @@ import Product from "./components/products";
 import NavBar from "./components/appBar";
 import SignUp from "./components/signUp";
 import SignIn from "./components/signIn";
+import Inventory from "./components/Inventory";
 import { useSelector } from "react-redux";
 import {
   HashRouter as Router,
@@ -26,6 +27,9 @@ function App() {
           </Route>
           <Route path="/cart">
             <Cart />
+          </Route>
+          <Route path="/Inventory">
+            <Inventory />
           </Route>
           <Route path={`/signIn`}>
           {isLoggedIn ? <Redirect to="/products" /> : <SignIn />}

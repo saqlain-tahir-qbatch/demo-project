@@ -4,6 +4,7 @@ import "./db/conn";
 import Product from "./routers/products";
 import Cart from "./routers/cart";
 import User from "./routers/user";
+import logger from 'morgan';
 
 
 
@@ -12,6 +13,7 @@ const port = process.env.API_PORT || 3002;
 
 app.use(cors());
 app.use(express.json());
+app.use(logger('common'));
 app.use("/",Product);
 app.use("/", Cart);
 app.use('/',User)
