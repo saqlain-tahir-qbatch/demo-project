@@ -5,12 +5,13 @@ const initialState = {
   Productlist: [],
   error: " ",
   description: " ",
-  filters: []
+  filters: [],
+  loading: false
 };
 
 export const fetchProduct = createAsyncThunk(
   "getProduct",
-  async (data, {getState}, thunkAPI) => {
+  async (data, thunkAPI) => {
     try {
       const result = await axios.get("products");
       return result.data;
@@ -42,6 +43,20 @@ export const fetchDescription = createAsyncThunk(
   async ({ id }, thunkAPI) => {
     try {
       const result = await axios.get(`products/${id}`);
+      return result.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue({
+        error: error.message,
+      });
+    }
+  }
+);
+export const updateDescription = createAsyncThunk(
+  "updatedecription",
+  async ({ id, value}, thunkAPI) => {
+    try {
+      console.log(id, value);
+      const result = await axios.patch(`update-description/${id}`, {value});
       return result.data;
     } catch (error) {
       return thunkAPI.rejectWithValue({
@@ -92,6 +107,16 @@ export const showSlice = createSlice({
       state = "pending";
     },
     [getProductWithFilter.rejected]: (state, actions) => {
+      state.error = actions.payload.error;
+    },
+    [updateDescription.fulfilled]: (state, actions) => {
+      state.loading= false;
+    },
+    [updateDescription.pending]: (state, actions) => {
+      state = "pending";
+      state.loading= true;
+    },
+    [updateDescription.rejected]: (state, actions) => {
       state.error = actions.payload.error;
     },
   },

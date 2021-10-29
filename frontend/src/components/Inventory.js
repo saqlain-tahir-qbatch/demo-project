@@ -17,10 +17,13 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit'
+import CheckIcon from '@mui/icons-material/Check'
+import ProductIcon from'@mui/icons-material/ProductionQuantityLimits'
 import { useDispatch, useSelector } from "react-redux";
 import { getProductWithFilter } from "../reducer/showProduct";
 import { Input } from '@mui/material';
 import { setFilter } from '../reducer/showProduct';
+import { updateDescription } from '../reducer/showProduct';
 
 
 const headCells = [
@@ -100,17 +103,7 @@ EnhancedTableHead.propTypes = {
 
 const EnhancedTableToolbar = (props) => {
   const { numSelected } = props;
-  const dispatch= useDispatch();
-  const OnSetFilter = (event) => {
-   const keyword= event.target.value
-   const filter = {
-      field: "keyword",
-      value: keyword,
-      filterType: 'text'
-  }
-   dispatch(setFilter(filter))
-   dispatch(getProductWithFilter());
-  }
+  
 
   return (
     <Toolbar
@@ -150,9 +143,7 @@ const EnhancedTableToolbar = (props) => {
           </IconButton>
         </Tooltip>
       ) : (
-        <Tooltip title="Search title or asin" sx={{ flex: '1 1 30%' }}>
-          <Input placeholder="Search title or asin for products" onChange={(event) => OnSetFilter(event)}></Input>
-        </Tooltip>
+        <ProductIcon/>
       )}
     </Toolbar>
   );
@@ -166,19 +157,15 @@ EnhancedTableToolbar.propTypes = {
 export default function Inventory() {
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
-  const [isClicked, setIsClicked] = useState('')
+  const [isClicked, setIsClicked] = useState(false)
+  const [description, setDescription] = useState('')
+  const [rowId, setRowId] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const list = useSelector((state) => state.Products.Productlist);
   const dispatch = useDispatch();
-
+  
 
   useEffect(() => {
-    // const filter = {
-    //   field: "rowsPerPage",
-    //   value: rowsPerPage,
-    //   filterType: 'text'
-    // }
-    // dispatch(setFilter(filter));
     dispatch(getProductWithFilter());
 
   }, [rowsPerPage]);
@@ -201,9 +188,34 @@ export default function Inventory() {
     setPage(0);
   };
   
-  const hanldeDescriptionEdit = (row) => {
-    setIsClicked('Clicked');
+  const hanldeStartDescriptionEdit = (row) => {
+    setIsClicked(true);
+    setRowId(row.id);
   }
+
+  const handleOnDescriptionChange = (row, event) => {
+    const {value} = event.target;
+    setDescription(value);
+  }
+
+  const OnSetFilter = (event) => {
+    const keyword= event.target.value
+    const filter = {
+       field: "keyword",
+       value: keyword,
+       filterType: 'text'
+   }
+    dispatch(setFilter(filter))
+    dispatch(getProductWithFilter());
+    setPage(0)
+   }
+   const hanldeStopDescriptionEdit = (row) => {
+    const {id} = row;
+    const value= description;
+    setIsClicked(false);
+    dispatch(updateDescription({id, value}));
+    dispatch(getProductWithFilter());
+   }
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   // Avoid a layout jump when reaching the last page with empty rows.
@@ -212,6 +224,9 @@ export default function Inventory() {
 
   return (
     <Box sx={{ width: '100%' }}>
+      <div style={{textAlign:'right'}}>
+      <Input sx={{ width: '23.5%' , paddingTop:'10px' }} placeholder="Search title or asin for products" onChange={(event) => OnSetFilter(event)}></Input>
+      </div>
       <Paper sx={{ width: '100%', mb: 2 }}>
         <EnhancedTableToolbar numSelected={selected.length} />
         <TableContainer sx={{ height: '90vh' }}>
@@ -259,8 +274,19 @@ export default function Inventory() {
                       </TableCell>
                       <TableCell align="right">{row.id} </TableCell>
                       <TableCell align="right">
+                        
+                        { (!isClicked ) && (
+                        <>
                         {row.description} 
-                        <EditIcon style={{height:'16px', verticalAlign:'text-bottom'}} onClick={() => hanldeDescriptionEdit(row)}/>
+                        <EditIcon style={{height:'16px', verticalAlign:'text-bottom'}} onClick={() => hanldeStartDescriptionEdit(row)}/>
+                        </>
+                        )}
+                        { (isClicked && rowId == row.id) && (
+                          <>
+                          <input defaultValue={row.description} onChange={(event) => handleOnDescriptionChange(row, event)}  />
+                          <CheckIcon style={{height:'16px', verticalAlign:'text-bottom'}} onClick={() => hanldeStopDescriptionEdit(row)}/>
+                          </>
+                        )}
                       </TableCell>
                       <TableCell align="right">{row.price}</TableCell>
                       <TableCell align="right">{row.quantity}</TableCell>

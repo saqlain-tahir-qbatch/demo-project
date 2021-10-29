@@ -48,5 +48,15 @@ router.get('/inventory', async (req, res) => {
     res.status(500).send(error);
   }
 });
+router.patch('/update-description/:id', async(req, res) => {
+  const {id} = req.params;
+  const {value} = req.body;
+  try {
+    const updatedProduct = await Product.findOneAndUpdate({ id }, {description:value},{ new: true });
+    res.status(200).send(updatedProduct);
+} catch (error) {
+    res.status(400).send(error)
+}
+})
 
 export default router;
