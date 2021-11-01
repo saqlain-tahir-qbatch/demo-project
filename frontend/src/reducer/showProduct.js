@@ -6,7 +6,12 @@ const initialState = {
   error: " ",
   description: " ",
   filters: [],
-  loading: false
+  loading: false,
+  pagination:{
+    pageNumber:0,
+    rowsPerPage:5
+  },
+  productsCount:0
 };
 
 export const fetchProduct = createAsyncThunk(
@@ -25,10 +30,15 @@ export const fetchProduct = createAsyncThunk(
 export const getProductWithFilter = createAsyncThunk(
   "getProductWithFilter",
   async (data, {getState}, thunkAPI) => {
-    const {filters} = getState().Products
+    const {filters} = getState().Products;
+    const{pageNumber, rowsPerPage} = getState().Products.pagination;
     try {
       const result = await axios.get("inventory", {
-        params: {filters: JSON.stringify(filters)}
+        params: {
+          filters: JSON.stringify(filters),
+          limit : rowsPerPage || 5,
+          skip: (pageNumber) * (rowsPerPage || 5 )
+        }
       });
       return result.data;
     } catch (error) {
@@ -55,8 +65,7 @@ export const updateDescription = createAsyncThunk(
   "updatedecription",
   async ({ id, value}, thunkAPI) => {
     try {
-      console.log(id, value);
-      const result = await axios.patch(`update-description/${id}`, {value});
+      const result = await axios.patch(`inventory/${id}`, {value});
       return result.data;
     } catch (error) {
       return thunkAPI.rejectWithValue({
@@ -79,48 +88,63 @@ export const showSlice = createSlice({
         filters.push({ field, value });
       }
       state["filters"] = filters;
+    },
+    setPagination(state, actions) {
+      return{
+      ...state,
+      pagination: actions.payload
+      } 
     }
   },
   extraReducers: {
     [fetchProduct.fulfilled]: (state, actions) => {
       state.Productlist = actions.payload;
     },
-    [fetchProduct.pending]: (state, actions) => {
-      state = "pending";
-    },
+    [fetchProduct.pending]: (state, actions) => ({
+      ...state,
+      loading: true
+    }),
     [fetchProduct.rejected]: (state, actions) => {
       state.error = actions.payload.error;
     },
     [fetchDescription.fulfilled]: (state, actions) => {
       state.description = actions.payload[0].description;
     },
-    [fetchDescription.pending]: (state, actions) => {
-      state = "pending";
-    },
+    [fetchDescription.pending]: (state, actions) => ({
+      ...state,
+      loading: true
+    }),
     [fetchDescription.rejected]: (state, actions) => {
       state.error = actions.payload.error;
     },
     [getProductWithFilter.fulfilled]: (state, actions) => {
-      state.Productlist = actions.payload;
+      const {products, total} = actions.payload;
+      state.Productlist = products;
+      state.productsCount = total
+
     },
-    [getProductWithFilter.pending]: (state, actions) => {
-      state = "pending";
-    },
-    [getProductWithFilter.rejected]: (state, actions) => {
-      state.error = actions.payload.error;
-    },
-    [updateDescription.fulfilled]: (state, actions) => {
-      state.loading= false;
-    },
-    [updateDescription.pending]: (state, actions) => {
-      state = "pending";
-      state.loading= true;
-    },
-    [updateDescription.rejected]: (state, actions) => {
-      state.error = actions.payload.error;
-    },
+    [getProductWithFilter.pending]: (state, actions) => ({
+      ...state,
+      loading: true
+    }),
+    [getProductWithFilter.rejected]: (state, actions) => ({
+      ...state,
+      error: actions.payload.error
+    }),
+    [updateDescription.fulfilled]: (state, actions) => ({
+      ...state,
+      loading: true
+    }),
+    [updateDescription.pending]: (state, actions) => ({
+      ...state,
+      loading: true
+    }),
+    [updateDescription.rejected]: (state, actions) => ({
+      ...state,
+      error: actions.payload.error
+    }),
   },
 });
-export const {setFilter} = showSlice.actions;
+export const {setFilter, setPagination} = showSlice.actions;
 
 export default showSlice.reducer;

@@ -1,10 +1,8 @@
 import Product from "../models/products";
 import { extend } from 'lodash';
-import { Console } from "console";
 
-const GetInventory = async (filters) => {
+const GetInventory = async (filters, limit, skip) => {
     let selector = {};
-    let limit = 0;
     let i = 0;
     while (i < filters.length) {
       const filter = filters[i];
@@ -17,19 +15,17 @@ const GetInventory = async (filters) => {
                 { id: { $regex: `.*${value}.*`, $options: 'i' } },
               ]
             });
-
-          break;
-        case 'rowsPerPage':
-             limit = value;
-        default:
+         break;
+        
+         default:
           break;
       }
   
       i += 1;
     }
-    
-    const products = await Product.find(selector).limit(limit)
-    return products;
+    const total = await Product.find(selector).countDocuments();
+    const products = await Product.find(selector).skip(skip).limit(limit)
+    return {products, total};
   };
   export default GetInventory;
   

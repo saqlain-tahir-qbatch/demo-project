@@ -24,6 +24,7 @@ import { getProductWithFilter } from "../reducer/showProduct";
 import { Input } from '@mui/material';
 import { setFilter } from '../reducer/showProduct';
 import { updateDescription } from '../reducer/showProduct';
+import { setPagination } from '../reducer/showProduct';
 
 
 const headCells = [
@@ -156,19 +157,16 @@ EnhancedTableToolbar.propTypes = {
 
 export default function Inventory() {
   const [selected, setSelected] = useState([]);
-  const [page, setPage] = useState(0);
-  const [isClicked, setIsClicked] = useState(false)
-  const [description, setDescription] = useState('')
+  const [description, setDescription] = useState(null)
   const [rowId, setRowId] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const list = useSelector((state) => state.Products.Productlist);
+  const {Productlist:list, productsCount, pagination} = useSelector((state) => state.Products);
   const dispatch = useDispatch();
   
 
   useEffect(() => {
     dispatch(getProductWithFilter());
 
-  }, [rowsPerPage]);
+  }, [pagination.rowsPerPage, pagination.pageNumber]);
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -180,25 +178,33 @@ export default function Inventory() {
   };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    const paginate = {
+     pageNumber:newPage,
+     rowsPerPage: pagination.rowsPerPage
+    }
+    dispatch(setPagination(paginate));
+    dispatch(getProductWithFilter())
   };
 
   const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const paginate = {
+      pageNumber:0,
+      rowsPerPage: parseInt(event.target.value, 10),
+     }
+     dispatch(setPagination(paginate));
   };
   
-  const hanldeStartDescriptionEdit = (row) => {
-    setIsClicked(true);
-    setRowId(row.id);
+  const hanldeStartDescriptionEdit = (id, description) => {
+    setRowId(id);
+    setDescription(description);
   }
 
-  const handleOnDescriptionChange = (row, event) => {
+  const handleOnDescriptionChange = (event) => {
     const {value} = event.target;
     setDescription(value);
   }
 
-  const OnSetFilter = (event) => {
+  const onSetFilter = (event) => {
     const keyword= event.target.value
     const filter = {
        field: "keyword",
@@ -207,25 +213,25 @@ export default function Inventory() {
    }
     dispatch(setFilter(filter))
     dispatch(getProductWithFilter());
-    setPage(0)
+    const paginate = {
+      pageNumber:0,
+      rowsPerPage: pagination.rowsPerPage
+     }
+    dispatch(setPagination(paginate));
+    
    }
-   const hanldeStopDescriptionEdit = (row) => {
-    const {id} = row;
+   const hanldeStopDescriptionEdit = async (id) => {
     const value= description;
-    setIsClicked(false);
+    setRowId('');
     dispatch(updateDescription({id, value}));
     dispatch(getProductWithFilter());
    }
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
-  // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - list.length) : 0;
-
   return (
     <Box sx={{ width: '100%' }}>
       <div style={{textAlign:'right'}}>
-      <Input sx={{ width: '23.5%' , paddingTop:'10px' }} placeholder="Search title or asin for products" onChange={(event) => OnSetFilter(event)}></Input>
+      <Input sx={{ width: '23.5%' , paddingTop:'10px' }} placeholder="Search title or asin for products" onChange={(event) => onSetFilter(event)}></Input>
       </div>
       <Paper sx={{ width: '100%', mb: 2 }}>
         <EnhancedTableToolbar numSelected={selected.length} />
@@ -241,18 +247,18 @@ export default function Inventory() {
               rowCount={list.length}
             />
             <TableBody>
-              {list.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              {list && list
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
-
+                  const {name, id, description, price, quantity} = row
                   return (
                     <TableRow
                       hover
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
-                      key={row.id}
+                      key={id}
                       selected={isItemSelected}
                     >
                       <TableCell padding="checkbox">
@@ -270,50 +276,39 @@ export default function Inventory() {
                         scope="row"
                         padding="none"
                       >
-                        {row.name}
+                        {name}
                       </TableCell>
-                      <TableCell align="right">{row.id} </TableCell>
+                      <TableCell align="right">{id} </TableCell>
                       <TableCell align="right">
-                        
-                        { (!isClicked ) && (
-                        <>
-                        {row.description} 
-                        <EditIcon style={{height:'16px', verticalAlign:'text-bottom'}} onClick={() => hanldeStartDescriptionEdit(row)}/>
-                        </>
-                        )}
-                        { (isClicked && rowId == row.id) && (
+                        { rowId == id ? (
                           <>
-                          <input defaultValue={row.description} onChange={(event) => handleOnDescriptionChange(row, event)}  />
-                          <CheckIcon style={{height:'16px', verticalAlign:'text-bottom'}} onClick={() => hanldeStopDescriptionEdit(row)}/>
+                          <input defaultValue={description} onChange={(event) => handleOnDescriptionChange(event)}  />
+                          <CheckIcon style={{height:'16px', verticalAlign:'text-bottom'}} onClick={() => hanldeStopDescriptionEdit(id, description)}/>
                           </>
-                        )}
+                        ):
+                        <>
+                        {description} 
+                        <EditIcon style={{height:'16px', verticalAlign:'text-bottom'}} onClick={() => hanldeStartDescriptionEdit(id)}/>
+                        </>
+                       }
+                       
                       </TableCell>
-                      <TableCell align="right">{row.price}</TableCell>
-                      <TableCell align="right">{row.quantity}</TableCell>
+                      <TableCell align="right">{price}</TableCell>
+                      <TableCell align="right">{quantity}</TableCell>
                     </TableRow>
                   );
                 })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: (33) * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={list.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
+          count={productsCount}
+          rowsPerPage={pagination.rowsPerPage}
+          page={pagination.pageNumber}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-
         />
       </Paper>
     </Box>

@@ -37,20 +37,21 @@ router.post('/addproducts', async (req, res) => {
 
 router.get('/inventory', async (req, res) => {
   const {
-    filters
+    filters, limit, skip
   } = req.query;
   try {
     const productFilters = filters ? JSON.parse(filters) : [];
-    const products = await GetInventory(productFilters);
+    const products = await GetInventory(productFilters, Number(limit), Number(skip));
     res.status(200).send(products);
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
   }
 });
-router.patch('/update-description/:id', async(req, res) => {
+router.patch('/inventory/:id', async(req, res) => {
   const {id} = req.params;
   const {value} = req.body;
+  console.log(id, value);
   try {
     const updatedProduct = await Product.findOneAndUpdate({ id }, {description:value},{ new: true });
     res.status(200).send(updatedProduct);
