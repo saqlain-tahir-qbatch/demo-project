@@ -25,6 +25,7 @@ import { Input } from '@mui/material';
 import { setFilter } from '../reducer/showProduct';
 import { updateDescription } from '../reducer/showProduct';
 import { setPagination } from '../reducer/showProduct';
+import { debounce } from 'lodash'
 
 
 const headCells = [
@@ -61,7 +62,7 @@ const headCells = [
 ];
 
 function EnhancedTableHead(props) {
-  const { onSelectAllClick, numSelected, rowCount, } =
+  const { onSelectAllClick, numSelected, rowCount } =
     props;
   
 
@@ -204,13 +205,17 @@ export default function Inventory() {
     setDescription(value);
   }
 
-  const onSetFilter = (event) => {
+  const onSetFilter = debounce((event) => {
     const keyword= event.target.value
+    if(keyword.length && keyword.trim() === "") {
+      return;
+    }
     const filter = {
        field: "keyword",
-       value: keyword,
+       value: keyword.trim(),
        filterType: 'text'
-   }
+    }
+    
     dispatch(setFilter(filter))
     dispatch(getProductWithFilter());
     const paginate = {
@@ -219,7 +224,8 @@ export default function Inventory() {
      }
     dispatch(setPagination(paginate));
     
-   }
+   },1000)
+
    const hanldeStopDescriptionEdit = async (id) => {
     const value= description;
     setRowId('');

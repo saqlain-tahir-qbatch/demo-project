@@ -76,7 +76,7 @@ export const updateDescription = createAsyncThunk(
 );
 
 export const showSlice = createSlice({
-  name: "show",
+  name: "inventory",
   initialState,
   reducers: {
     setFilter(state, { payload: { field, value } }) {

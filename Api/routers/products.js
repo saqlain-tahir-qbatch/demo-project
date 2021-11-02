@@ -51,7 +51,6 @@ router.get('/inventory', async (req, res) => {
 router.patch('/inventory/:id', async(req, res) => {
   const {id} = req.params;
   const {value} = req.body;
-  console.log(id, value);
   try {
     const updatedProduct = await Product.findOneAndUpdate({ id }, {description:value},{ new: true });
     res.status(200).send(updatedProduct);
